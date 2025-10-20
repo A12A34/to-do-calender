@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Calendar</title>
+    <link rel="stylesheet" href="/main/calander.css">
+    <script src="/main/calander.js" defer></script>
+</head>
+<body>
+
+<!-- Login Page -->
+<div id="loginPage">
+    <h2>Login</h2>
+    <form id="loginForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
+        <button type="submit">Login</button>
+    </form>
+    <p id="loginError" style="color:red; display:none;">Invalid username or password</p>
+</div>
+
+<!-- Calendar Page -->
+<div id="calendarPage" style="display:none;">
+    <div id="fontgroup">
+        <span id="left_arrow">&lt;</span>
+        <h1 id="currentyear"></h1>
+        <span id="right_arrow">&gt;</span>
+    </div>
+    <main id="maincalander">
+        <div id="monthdev">
+            <button class="monthbutton">January</button>
+            <button class="monthbutton">February</button>
+            <button class="monthbutton">March</button>
+            <button class="monthbutton">April</button>
+            <button class="monthbutton">May</button>
+            <button class="monthbutton">June</button>
+            <button class="monthbutton">July</button>
+            <button class="monthbutton">August</button>
+            <button class="monthbutton">September</button>
+            <button class="monthbutton">October</button>
+            <button class="monthbutton">November</button>
+            <button class="monthbutton">December</button>
+        </div>
+        <div id="daysdev"></div>
+        <div id="tododev">
+            <h3>To-Do List</h3>
+            <ul id="todolist"></ul>
+            <input type="text" id="newTodo" placeholder="Add new task">
+            <button id="addTodo">Add</button>
+        </div>
+    </main>
+</div>
+
+</body>
+</html>
