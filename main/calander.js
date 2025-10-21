@@ -17,6 +17,7 @@ const rightArrow = document.getElementById('right_arrow');
 const currentYearEl = document.getElementById('currentyear');
 const daysDev = document.getElementById('daysdev');
 const monthButtons = document.querySelectorAll('.monthbutton');
+const todayBtn = document.getElementById('todayBtn');
 
 let currentUser = null;
 let userData = { tasks: {} }; // tasks: { 'YYYY-MM': { '1': [ {id, text, completed, createdAt} ] } }
@@ -75,61 +76,7 @@ function startOfDay(d) {
 }
 function today() { return startOfDay(new Date()); }
 
-function injectEnhancedStyles() {
-    if (document.getElementById('calendar-enhanced-styles')) return;
-    const style = document.createElement('style');
-    style.id = 'calendar-enhanced-styles';
-    style.textContent = `
-    :root {
-        --ink: #0b0b0b;
-        --accent: #3b82f6;       /* blue */
-        --accent-2: #22c55e;     /* green */
-        --accent-3: #f97316;     /* orange */
-        --muted: #eef2ff;        /* light indigo */
-        --muted-2: #e6fffa;      /* light teal */
-        --muted-3: #fff7ed;      /* light orange */
-        --danger: #ef4444;       /* red */
-        --gray-700: #404040;
-        --gray-500: #737373;
-    }
-    
-    /* Header colors */
-    #currentyear { background: var(--muted); }
-    #left_arrow, #right_arrow { background: var(--ink); color: #fff; }
-
-    /* Day cell internals */
-    .day { position: relative; background: #fff; }
-    .day.today { background: var(--muted-2); }
-    .day-header {
-        display: inline-block;
-        min-width: 34px;
-        padding: 4px 10px;
-        border: 3px solid var(--ink);
-        border-radius: 999px;
-        font-weight: 800;
-        background: #fff;
-        margin-bottom: 6px;
-    }
-    .task-list { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-direction: column; gap: 6px; }
-    .task-item { display: flex; align-items: center; gap: 8px; border: 2px solid var(--ink); border-radius: 999px; padding: 4px 8px; background: #fff; }
-    .task-item.completed { opacity: 0.6; text-decoration: line-through; }
-    .task-text { flex: 1; font-size: 13px; }
-    .task-actions { display: inline-flex; gap: 6px; align-items: center; }
-    .task-btn { border: 2px solid var(--ink); border-radius: 999px; padding: 2px 6px; cursor: pointer; background: var(--muted-3); font-weight: 700; }
-    .task-btn.delete { background: #fff; color: var(--danger); }
-
-    .task-input-row { display: flex; gap: 6px; margin-top: 8px; }
-    .task-input { flex: 1; border: 3px solid var(--ink); border-radius: 999px; padding: 6px 10px; }
-    .task-add { border: 3px solid var(--ink); border-radius: 999px; padding: 6px 12px; background: var(--accent-2); color: #fff; font-weight: 800; cursor: pointer; }
-
-    #tododev h3 { background: var(--muted); }
-    #todolist li { background: var(--muted-3); }
-
-    #toolsbar { display: flex; gap: 8px; margin-top: 8px; justify-content: center; }
-    #toolsbar button { border: 3px solid var(--ink); border-radius: 999px; padding: 6px 12px; background: #fff; cursor: pointer; font-weight: 700; }
-    `;
-    document.head.appendChild(style);
-}
+/* Removed injectEnhancedStyles() as styles are now handled in calander.css */
 
 /* -------------------- Rendering -------------------- */
 function renderCalendar(month = currentMonth, year = currentYear) {
@@ -211,6 +158,14 @@ function renderCalendar(month = currentMonth, year = currentYear) {
         daysDev.appendChild(dayEl);
     }
     currentYearEl.textContent = year;
+
+    // Set dynamic month label for CSS pseudo-element
+    document.documentElement.style.setProperty('--month-label', `"${monthNames[month]}"`);
+
+    // Update active month button
+    monthButtons.forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === month);
+    });
 }
 
 function renderTasksForDay(listEl, dayNum, month, year) {
@@ -274,7 +229,7 @@ function renderUpcomingTasks() {
     upcoming.forEach(item => {
         const li = document.createElement('li');
         li.className = 'task-item';
-        const dateStr = `${monthNames[item.date.getMonth()].slice(0,3)} ${String(item.date.getDate()).padStart(2,'0')}`;
+        const dateStr = `${monthNames[item.date.getMonth()].slice(0, 3)} ${String(item.date.getDate()).padStart(2, '0')}`;
 
         const cb = document.createElement('input');
         cb.type = 'checkbox';
@@ -285,9 +240,19 @@ function renderUpcomingTasks() {
             renderUpcomingTasks();
         });
 
-        const text = document.createElement('span');
+        const text = document.createElement('button');
         text.className = 'task-text';
+        text.style.background = 'transparent';
+        text.style.border = 'none';
+        text.style.textAlign = 'left';
+        text.style.cursor = 'pointer';
         text.textContent = `[${dateStr}] ${item.text}`;
+        text.addEventListener('click', () => {
+            currentYear = item.year;
+            currentMonth = item.monthIndex;
+            renderCalendar(currentMonth, currentYear);
+            // Optionally, scroll to the day if needed later
+        });
 
         li.appendChild(cb);
         li.appendChild(text);
@@ -323,7 +288,7 @@ function collectUpcomingTasks(windowDays = 7) {
 /* -------------------- Mutations -------------------- */
 function addTask(year, monthIndex, day, text) {
     const arr = ensureDayArray(year, monthIndex, day);
-    arr.push({ id: `${Date.now()}_${Math.random().toString(36).slice(2,7)}`, text, completed: false, createdAt: Date.now() });
+    arr.push({ id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, text, completed: false, createdAt: Date.now() });
     saveUserData();
 }
 function toggleTask(year, monthIndex, day, id, completed) {
@@ -355,9 +320,6 @@ loginForm.addEventListener('submit', (e) => {
         loginPage.style.display = 'none';
         calendarPage.style.display = 'block';
 
-        // Prepare UI accents
-        injectEnhancedStyles();
-
         // Update right panel title and hide old inputs if present
         const todoTitle = document.querySelector('#tododev h3');
         if (todoTitle) todoTitle.textContent = 'Upcoming Tasks';
@@ -375,17 +337,19 @@ loginForm.addEventListener('submit', (e) => {
 });
 
 function attachBackupTools() {
-    const panel = document.getElementById('tododev');
-    if (!panel) return;
-    let tools = document.getElementById('toolsbar');
-    if (tools) return; // already attached
+    const downloadBtn = document.getElementById('downloadBtn');
+    const restoreBtn = document.getElementById('restoreBtn');
 
-    tools = document.createElement('div');
-    tools.id = 'toolsbar';
+    if (!downloadBtn || !restoreBtn) return;
 
-    const exportBtn = document.createElement('button');
-    exportBtn.textContent = 'Download Backup';
-    exportBtn.addEventListener('click', () => {
+    // Remove any existing event listeners by cloning
+    const newDownloadBtn = downloadBtn.cloneNode(true);
+    const newRestoreBtn = restoreBtn.cloneNode(true);
+    downloadBtn.replaceWith(newDownloadBtn);
+    restoreBtn.replaceWith(newRestoreBtn);
+
+    // Download backup
+    newDownloadBtn.addEventListener('click', () => {
         const blob = new Blob([JSON.stringify(userData, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -395,13 +359,15 @@ function attachBackupTools() {
         URL.revokeObjectURL(url);
     });
 
-    const importBtn = document.createElement('button');
-    importBtn.textContent = 'Restore Backup';
+    // Restore backup
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'application/json';
     fileInput.style.display = 'none';
-    importBtn.addEventListener('click', () => fileInput.click());
+    document.body.appendChild(fileInput);
+
+    newRestoreBtn.addEventListener('click', () => fileInput.click());
+
     fileInput.addEventListener('change', async (e) => {
         const f = e.target.files && e.target.files[0];
         if (!f) return;
@@ -413,17 +379,13 @@ function attachBackupTools() {
             saveUserData();
             renderCalendar(currentMonth, currentYear);
             renderUpcomingTasks();
+            alert('Backup restored successfully!');
         } catch (err) {
             alert('Failed to import backup: ' + err.message);
         } finally {
             fileInput.value = '';
         }
     });
-
-    tools.appendChild(exportBtn);
-    tools.appendChild(importBtn);
-    tools.appendChild(fileInput);
-    panel.appendChild(tools);
 }
 
 /* -------------------- Navigation -------------------- */
@@ -443,3 +405,84 @@ monthButtons.forEach((btn, index) => {
         renderCalendar(currentMonth, currentYear);
     });
 });
+
+// Today button: jump to current month/year and re-render
+if (todayBtn) {
+    todayBtn.addEventListener('click', () => {
+        const now = new Date();
+        currentYear = now.getFullYear();
+        currentMonth = now.getMonth();
+        renderCalendar(currentMonth, currentYear);
+        renderUpcomingTasks();
+    });
+}
+
+// Search feature: filter tasks across all months
+const taskSearchInput = document.getElementById('taskSearch');
+const clearSearchBtn = document.getElementById('clearSearch');
+
+function getAllTasksFlat() {
+    const results = [];
+    for (const mk of Object.keys(userData.tasks || {})) {
+        const [yStr, mStr] = mk.split('-');
+        const y = parseInt(yStr, 10);
+        const mIndex = parseInt(mStr, 10) - 1;
+        const daysObj = userData.tasks[mk] || {};
+        for (const dStr of Object.keys(daysObj)) {
+            const d = parseInt(dStr, 10);
+            const list = daysObj[dStr] || [];
+            for (const t of list) {
+                results.push({ id: t.id, text: t.text, completed: t.completed, year: y, monthIndex: mIndex, day: d, createdAt: t.createdAt });
+            }
+        }
+    }
+    return results;
+}
+
+function renderSearchResults(query) {
+    const list = document.getElementById('todolist');
+    if (!list) return;
+    const q = (query || '').trim().toLowerCase();
+    if (!q) { renderUpcomingTasks(); return; }
+
+    list.innerHTML = '';
+    const all = getAllTasksFlat();
+    const matches = all.filter(t => t.text && t.text.toLowerCase().includes(q)).sort((a, b) => (a.year - b.year) || (a.monthIndex - b.monthIndex) || (a.day - b.day));
+    if (matches.length === 0) {
+        const li = document.createElement('li');
+        li.textContent = 'No tasks match your search.';
+        list.appendChild(li);
+        return;
+    }
+    for (const m of matches) {
+        const li = document.createElement('li');
+        li.className = 'task-item';
+        const date = new Date(m.year, m.monthIndex, m.day);
+        const dateStr = `${monthNames[date.getMonth()].slice(0, 3)} ${String(date.getDate()).padStart(2, '0')} ${date.getFullYear()}`;
+        const button = document.createElement('button');
+        button.className = 'task-text';
+        button.style.background = 'transparent';
+        button.style.border = 'none';
+        button.style.textAlign = 'left';
+        button.style.cursor = 'pointer';
+        button.textContent = `[${dateStr}] ${m.text}`;
+        button.addEventListener('click', () => {
+            currentYear = m.year;
+            currentMonth = m.monthIndex;
+            renderCalendar(currentMonth, currentYear);
+            renderUpcomingTasks();
+        });
+        li.appendChild(button);
+        list.appendChild(li);
+    }
+}
+
+if (taskSearchInput) {
+    taskSearchInput.addEventListener('input', (e) => renderSearchResults(e.target.value));
+}
+if (clearSearchBtn) {
+    clearSearchBtn.addEventListener('click', () => {
+        if (taskSearchInput) taskSearchInput.value = '';
+        renderUpcomingTasks();
+    });
+}

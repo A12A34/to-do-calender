@@ -28,30 +28,44 @@
         <span id="left_arrow">&lt;</span>
         <h1 id="currentyear"></h1>
         <span id="right_arrow">&gt;</span>
+        <button id="todayBtn" title="Jump to current month">Today</button>
     </div>
+    
+    <!-- Month buttons row at top -->
+    <div id="monthdev">
+        <button class="monthbutton">January</button>
+        <button class="monthbutton">February</button>
+        <button class="monthbutton">March</button>
+        <button class="monthbutton">April</button>
+        <button class="monthbutton">May</button>
+        <button class="monthbutton">June</button>
+        <button class="monthbutton">July</button>
+        <button class="monthbutton">August</button>
+        <button class="monthbutton">September</button>
+        <button class="monthbutton">October</button>
+        <button class="monthbutton">November</button>
+        <button class="monthbutton">December</button>
+    </div>
+    
     <main id="maincalander">
-        <div id="monthdev">
-            <button class="monthbutton">January</button>
-            <button class="monthbutton">February</button>
-            <button class="monthbutton">March</button>
-            <button class="monthbutton">April</button>
-            <button class="monthbutton">May</button>
-            <button class="monthbutton">June</button>
-            <button class="monthbutton">July</button>
-            <button class="monthbutton">August</button>
-            <button class="monthbutton">September</button>
-            <button class="monthbutton">October</button>
-            <button class="monthbutton">November</button>
-            <button class="monthbutton">December</button>
-        </div>
         <div id="daysdev"></div>
         <div id="tododev">
             <h3>To-Do List</h3>
+            <div id="searchbar">
+                <input type="text" id="taskSearch" placeholder="Search tasks...">
+                <button id="clearSearch" title="Clear search">Clear</button>
+            </div>
             <ul id="todolist"></ul>
             <input type="text" id="newTodo" placeholder="Add new task">
             <button id="addTodo">Add</button>
         </div>
     </main>
+    
+    <!-- Footer buttons outside to-do list -->
+    <div id="footer-buttons">
+        <button id="downloadBtn">Download Backup</button>
+        <button id="restoreBtn">Restore Backup</button>
+    </div>
 </div>
 
 </body>
