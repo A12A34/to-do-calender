@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <title>Login & Calendar</title>
     <link rel="stylesheet" href="/main/calander.css">
     <script src="/main/calander.js" defer></script>
@@ -29,6 +29,9 @@
         <h1 id="currentyear"></h1>
         <span id="right_arrow">&gt;</span>
         <button id="todayBtn" title="Jump to current month">Today</button>
+        <button id="themeToggle" title="Toggle light/dark mode" aria-label="Toggle theme">
+            <span class="theme-icon">🌙</span>
+        </button>
     </div>
     
     <!-- Month buttons row at top -->
@@ -50,14 +53,19 @@
     <main id="maincalander">
         <div id="daysdev"></div>
         <div id="tododev">
-            <h3>To-Do List</h3>
+            <h3>Upcoming Tasks</h3>
             <div id="searchbar">
-                <input type="text" id="taskSearch" placeholder="Search tasks...">
-                <button id="clearSearch" title="Clear search">Clear</button>
+                <input type="text" id="taskSearch" placeholder="Search tasks..." aria-label="Search tasks">
+                <button id="clearSearch" title="Clear search" aria-label="Clear search">Clear</button>
             </div>
-            <ul id="todolist"></ul>
-            <input type="text" id="newTodo" placeholder="Add new task">
-            <button id="addTodo">Add</button>
+            <div id="filterbar" role="group" aria-label="Filter tasks">
+                <button class="filter-btn active" data-filter="all" aria-pressed="true">All</button>
+                <button class="filter-btn" data-filter="incomplete" aria-pressed="false">Active</button>
+                <button class="filter-btn" data-filter="completed" aria-pressed="false">Completed</button>
+            </div>
+            <ul id="todolist" role="list"></ul>
+            <input type="text" id="newTodo" placeholder="Add new task" style="display:none;">
+            <button id="addTodo" style="display:none;">Add</button>
         </div>
     </main>
     

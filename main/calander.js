@@ -3,7 +3,8 @@
 // Simple dictionary of users
 const users = {
     'admin': 'admin123',
-    'user1': 'pass1'
+    'user1': 'pass1',
+    'u1': 'p1',
 };
 
 // Elements (available because script is defer)
@@ -21,6 +22,7 @@ const todayBtn = document.getElementById('todayBtn');
 
 let currentUser = null;
 let userData = { tasks: {} }; // tasks: { 'YYYY-MM': { '1': [ {id, text, completed, createdAt} ] } }
+let currentFilter = 'all'; // 'all', 'completed', 'incomplete'
 
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth(); // 0-11
@@ -76,6 +78,33 @@ function startOfDay(d) {
 }
 function today() { return startOfDay(new Date()); }
 
+/* -------------------- Theme Management -------------------- */
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+    setTheme(theme);
+}
+
+function setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        const icon = themeToggle.querySelector('.theme-icon');
+        if (icon) {
+            icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+        themeToggle.setAttribute('aria-label', `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`);
+    }
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+}
+
 /* Removed injectEnhancedStyles() as styles are now handled in calander.css */
 
 /* -------------------- Rendering -------------------- */
@@ -89,15 +118,16 @@ function renderCalendar(month = currentMonth, year = currentYear) {
         const dayNameEl = document.createElement('div');
         dayNameEl.classList.add('day-name');
         dayNameEl.textContent = daysnames[i].substring(0, 3);
+        dayNameEl.setAttribute('role', 'columnheader');
+        dayNameEl.setAttribute('aria-label', daysnames[i]);
         daysDev.appendChild(dayNameEl);
     }
 
-    // Blanks before first day
+    // Blanks before first day (use .blank so CSS can hide/style them)
     for (let i = 0; i < firstDay; i++) {
         const blankDay = document.createElement('div');
-        blankDay.classList.add('day');
+        blankDay.classList.add('day', 'blank');
         blankDay.textContent = '';
-        blankDay.style.visibility = 'hidden';
         daysDev.appendChild(blankDay);
     }
 
@@ -105,10 +135,13 @@ function renderCalendar(month = currentMonth, year = currentYear) {
     for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
         const dayEl = document.createElement('div');
         dayEl.classList.add('day');
+        dayEl.setAttribute('role', 'article');
+        dayEl.setAttribute('aria-label', `${monthNames[month]} ${dayNum}, ${year}`);
 
         const todayDate = new Date();
         if (todayDate.getFullYear() === year && todayDate.getMonth() === month && todayDate.getDate() === dayNum) {
             dayEl.classList.add('today');
+            dayEl.setAttribute('aria-current', 'date');
         }
 
         // Header with day number
@@ -159,8 +192,10 @@ function renderCalendar(month = currentMonth, year = currentYear) {
     }
     currentYearEl.textContent = year;
 
-    // Set dynamic month label for CSS pseudo-element
-    document.documentElement.style.setProperty('--month-label', `"${monthNames[month]}"`);
+    // Set dynamic month label on #daysdev for CSS pseudo-element
+    if (daysDev) {
+        daysDev.setAttribute('data-month', monthNames[month]);
+    }
 
     // Update active month button
     monthButtons.forEach((btn, idx) => {
@@ -183,6 +218,7 @@ function renderTasksForDay(listEl, dayNum, month, year) {
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.checked = !!task.completed;
+        cb.setAttribute('aria-label', `Mark ${task.text} as ${task.completed ? 'incomplete' : 'complete'}`);
         cb.addEventListener('change', () => {
             toggleTask(year, month, dayNum, task.id, cb.checked);
             li.classList.toggle('completed', cb.checked);
@@ -219,14 +255,23 @@ function renderUpcomingTasks() {
     list.innerHTML = '';
     const upcoming = collectUpcomingTasks(7); // next 7 days
 
-    if (upcoming.length === 0) {
+    // Apply current filter
+    const filtered = upcoming.filter(item => {
+        if (currentFilter === 'completed') return item.completed;
+        if (currentFilter === 'incomplete') return !item.completed;
+        return true; // 'all'
+    });
+
+    if (filtered.length === 0) {
         const li = document.createElement('li');
-        li.textContent = 'No upcoming tasks in the next 7 days.';
+        li.textContent = currentFilter === 'all'
+            ? 'No upcoming tasks in the next 7 days.'
+            : `No ${currentFilter} tasks in the next 7 days.`;
         list.appendChild(li);
         return;
     }
 
-    upcoming.forEach(item => {
+    filtered.forEach(item => {
         const li = document.createElement('li');
         li.className = 'task-item';
         const dateStr = `${monthNames[item.date.getMonth()].slice(0, 3)} ${String(item.date.getDate()).padStart(2, '0')}`;
@@ -234,6 +279,7 @@ function renderUpcomingTasks() {
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.checked = !!item.completed;
+        cb.setAttribute('aria-label', `Mark ${item.text} as ${item.completed ? 'incomplete' : 'complete'}`);
         cb.addEventListener('change', () => {
             toggleTask(item.year, item.monthIndex, item.day, item.id, cb.checked);
             renderCalendar(currentMonth, currentYear); // keep UI in sync
@@ -247,6 +293,7 @@ function renderUpcomingTasks() {
         text.style.textAlign = 'left';
         text.style.cursor = 'pointer';
         text.textContent = `[${dateStr}] ${item.text}`;
+        text.setAttribute('aria-label', `Jump to ${item.text} on ${dateStr}`);
         text.addEventListener('click', () => {
             currentYear = item.year;
             currentMonth = item.monthIndex;
@@ -310,7 +357,7 @@ function deleteTask(year, monthIndex, day, id) {
 /* -------------------- Auth + Boot -------------------- */
 loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const username = document.getElementById('username').value.trim();
+    const username = document.getElementById('username').value.trim().toLowerCase();
     const password = document.getElementById('password').value;
 
     if (users[username] && users[username] === password) {
@@ -319,6 +366,9 @@ loginForm.addEventListener('submit', (e) => {
 
         loginPage.style.display = 'none';
         calendarPage.style.display = 'block';
+
+        // Initialize theme
+        initTheme();
 
         // Update right panel title and hide old inputs if present
         const todoTitle = document.querySelector('#tododev h3');
@@ -329,6 +379,8 @@ loginForm.addEventListener('submit', (e) => {
         if (addTodo) addTodo.style.display = 'none';
 
         attachBackupTools();
+        attachFilterButtons();
+        attachThemeToggle();
         renderCalendar();
         renderUpcomingTasks();
     } else {
@@ -385,6 +437,39 @@ function attachBackupTools() {
         } finally {
             fileInput.value = '';
         }
+    });
+}
+
+function attachThemeToggle() {
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+}
+
+function attachFilterButtons() {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Update active state
+            filterButtons.forEach(b => {
+                b.classList.remove('active');
+                b.setAttribute('aria-pressed', 'false');
+            });
+            btn.classList.add('active');
+            btn.setAttribute('aria-pressed', 'true');
+
+            // Update current filter
+            currentFilter = btn.dataset.filter;
+
+            // Re-render the task list
+            const searchInput = document.getElementById('taskSearch');
+            if (searchInput && searchInput.value.trim()) {
+                renderSearchResults(searchInput.value);
+            } else {
+                renderUpcomingTasks();
+            }
+        });
     });
 }
 
@@ -447,7 +532,19 @@ function renderSearchResults(query) {
 
     list.innerHTML = '';
     const all = getAllTasksFlat();
-    const matches = all.filter(t => t.text && t.text.toLowerCase().includes(q)).sort((a, b) => (a.year - b.year) || (a.monthIndex - b.monthIndex) || (a.day - b.day));
+
+    // Apply search and filter
+    let matches = all.filter(t => t.text && t.text.toLowerCase().includes(q));
+
+    // Apply current filter
+    matches = matches.filter(t => {
+        if (currentFilter === 'completed') return t.completed;
+        if (currentFilter === 'incomplete') return !t.completed;
+        return true; // 'all'
+    });
+
+    matches.sort((a, b) => (a.year - b.year) || (a.monthIndex - b.monthIndex) || (a.day - b.day));
+
     if (matches.length === 0) {
         const li = document.createElement('li');
         li.textContent = 'No tasks match your search.';
@@ -457,8 +554,20 @@ function renderSearchResults(query) {
     for (const m of matches) {
         const li = document.createElement('li');
         li.className = 'task-item';
+        if (m.completed) li.classList.add('completed');
+
         const date = new Date(m.year, m.monthIndex, m.day);
         const dateStr = `${monthNames[date.getMonth()].slice(0, 3)} ${String(date.getDate()).padStart(2, '0')} ${date.getFullYear()}`;
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = !!m.completed;
+        cb.setAttribute('aria-label', `Mark ${m.text} as ${m.completed ? 'incomplete' : 'complete'}`);
+        cb.addEventListener('change', () => {
+            toggleTask(m.year, m.monthIndex, m.day, m.id, cb.checked);
+            renderSearchResults(query);
+        });
+
         const button = document.createElement('button');
         button.className = 'task-text';
         button.style.background = 'transparent';
@@ -466,12 +575,15 @@ function renderSearchResults(query) {
         button.style.textAlign = 'left';
         button.style.cursor = 'pointer';
         button.textContent = `[${dateStr}] ${m.text}`;
+        button.setAttribute('aria-label', `Jump to ${m.text} on ${dateStr}`);
         button.addEventListener('click', () => {
             currentYear = m.year;
             currentMonth = m.monthIndex;
             renderCalendar(currentMonth, currentYear);
             renderUpcomingTasks();
         });
+
+        li.appendChild(cb);
         li.appendChild(button);
         list.appendChild(li);
     }
