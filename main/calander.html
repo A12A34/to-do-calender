@@ -8,6 +8,7 @@
     <script src="/main/calander.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#maincalander">Skip to calendar</a>
 
 <!-- Login Page -->
 <div id="loginPage">
@@ -25,13 +26,14 @@
 <!-- Calendar Page -->
 <div id="calendarPage" style="display:none;">
     <div id="fontgroup">
-        <span id="left_arrow">&lt;</span>
-        <h1 id="currentyear"></h1>
-        <span id="right_arrow">&gt;</span>
+        <button id="left_arrow" class="year-nav" type="button" aria-label="Previous year">&lt;</button>
+        <div class="current-date">
+            <span id="currentMonthLabel" aria-live="polite" aria-atomic="true">Month</span>
+            <h1 id="currentyear" aria-live="polite" aria-atomic="true">Year</h1>
+        </div>
+        <button id="right_arrow" class="year-nav" type="button" aria-label="Next year">&gt;</button>
         <button id="todayBtn" title="Jump to current month">Today</button>
-        <button id="themeToggle" title="Toggle light/dark mode" aria-label="Toggle theme">
-            <span class="theme-icon">🌙</span>
-        </button>
+        <button id="changeAccountBtn" title="Switch account">Account</button>
     </div>
     
     <!-- Month buttons row at top -->
@@ -49,11 +51,29 @@
         <button class="monthbutton">November</button>
         <button class="monthbutton">December</button>
     </div>
+
+    <section id="calendarStats" aria-live="polite" aria-label="Current month task summary">
+        <div class="stat-item" data-stat="total">
+            <span class="stat-label">Total Tasks</span>
+            <span class="stat-value">0</span>
+        </div>
+        <div class="stat-item" data-stat="active">
+            <span class="stat-label">Active</span>
+            <span class="stat-value">0</span>
+        </div>
+        <div class="stat-item" data-stat="completed">
+            <span class="stat-label">Completed</span>
+            <span class="stat-value">0</span>
+        </div>
+        <div class="stat-item" data-stat="busiest">
+            <span class="stat-label">Busiest Day</span>
+            <span class="stat-value">—</span>
+        </div>
+    </section>
     
     <main id="maincalander">
-        <div id="daysdev"></div>
-        <div id="tododev">
-            <h3>Upcoming Tasks</h3>
+        <div id="tododev" role="region" aria-labelledby="todoHeading">
+            <h3 id="todoHeading">Upcoming Tasks</h3>
             <div id="searchbar">
                 <input type="text" id="taskSearch" placeholder="Search tasks..." aria-label="Search tasks">
                 <button id="clearSearch" title="Clear search" aria-label="Clear search">Clear</button>
@@ -67,6 +87,7 @@
             <input type="text" id="newTodo" placeholder="Add new task" style="display:none;">
             <button id="addTodo" style="display:none;">Add</button>
         </div>
+        <div id="daysdev" role="grid" aria-label="Calendar days"></div>
     </main>
     
     <!-- Footer buttons outside to-do list -->
