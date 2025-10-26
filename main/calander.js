@@ -29,6 +29,7 @@ const daysDev = document.getElementById('daysdev');
 const monthButtons = document.querySelectorAll('.monthbutton');
 const todayBtn = document.getElementById('todayBtn');
 const changeAccountBtn = document.getElementById('changeAccountBtn');
+const currentUserDisplay = document.getElementById('currentUserDisplay');
 // Compact/comfort mode removed
 const calendarStats = document.getElementById('calendarStats');
 
@@ -40,6 +41,7 @@ let dataVersion = 0;
 let allTasksCache = { version: -1, tasks: [] };
 let upcomingCache = { version: -1, windowDays: 0, tasks: [] };
 let keyboardShortcutsEnabled = true;
+let filtersInitialized = false;
 
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth(); // 0-11
@@ -70,6 +72,41 @@ function loadUserData(username) {
     }
 }
 // Compact/comfort mode feature fully removed
+
+function saveUserData() {
+    if (!currentUser) return;
+    try {
+        localStorage.setItem(storageKeyFor(currentUser), JSON.stringify(userData));
+    } catch (err) {
+        console.error('Failed saving calendar data', err);
+    }
+}
+
+function startOfDay(date) {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
+
+function today() {
+    return startOfDay(new Date());
+}
+
+function initReducedMotionWatcher() {
+    if (!window.matchMedia) return;
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const apply = () => {
+        const reduced = mq.matches;
+        keyboardShortcutsEnabled = !reduced;
+        document.documentElement.classList.toggle('reduce-motion', reduced);
+    };
+    apply();
+    if (typeof mq.addEventListener === 'function') {
+        mq.addEventListener('change', apply);
+    } else if (typeof mq.addListener === 'function') {
+        mq.addListener(apply);
+    }
+}
 
 /* Removed injectEnhancedStyles() as styles are now handled in calander.css */
 
@@ -165,7 +202,7 @@ function renderCalendar(month = currentMonth, year = currentYear) {
         prioritySelectEl.id = `priority-${year}-${month}-${dayNum}`;
         prioritySelectEl.innerHTML = '<option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option>';
 
-        addBtn.addEventListener('click', () => {
+        const handleTaskAdd = () => {
             const val = input.value.trim();
             if (!val) return;
             addTask(year, month, dayNum, val, prioritySelectEl ? prioritySelectEl.value : 'medium');
@@ -175,10 +212,20 @@ function renderCalendar(month = currentMonth, year = currentYear) {
             renderTasksForDay(list, dayNum, month, year);
             renderUpcomingTasks();
             renderMonthStats(month, year);
-        });
+            input.focus();
+        };
+
+        addBtn.addEventListener('click', handleTaskAdd);
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                addBtn.click();
+                e.preventDefault();
+                handleTaskAdd();
+            }
+        });
+        prioritySelectEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleTaskAdd();
             }
         });
 
@@ -444,9 +491,21 @@ function deleteTask(year, monthIndex, day, id) {
 function bootCalendarForUser(username) {
     currentUser = username;
     userData = loadUserData(currentUser);
+    dataVersion++;
+    allTasksCache = { version: -1, tasks: [] };
+    upcomingCache = { version: -1, windowDays: 0, tasks: [] };
+
+    const now = today();
+    currentYear = now.getFullYear();
+    currentMonth = now.getMonth();
+    if (currentUserDisplay) {
+        const prettyName = username && username.length ? username.charAt(0).toUpperCase() + username.slice(1) : 'User';
+        currentUserDisplay.textContent = `Signed in as ${prettyName}`;
+    }
 
     if (loginPage) loginPage.style.display = 'none';
     if (calendarPage) calendarPage.style.display = 'block';
+    if (loginError) loginError.style.display = 'none';
 
     // Update right panel title and hide old inputs if present
     const todoTitle = document.querySelector('#tododev h3');
@@ -458,7 +517,7 @@ function bootCalendarForUser(username) {
 
     attachBackupTools();
     attachFilterButtons();
-    renderCalendar();
+    renderCalendar(currentMonth, currentYear);
     renderUpcomingTasks();
 }
 
@@ -539,6 +598,7 @@ function attachBackupTools() {
 }
 
 function attachFilterButtons() {
+    if (filtersInitialized) return;
     const filterButtons = document.querySelectorAll('.filter-btn');
     filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -562,6 +622,7 @@ function attachFilterButtons() {
             }
         });
     });
+    filtersInitialized = true;
 }
 
 /* -------------------- Navigation -------------------- */
@@ -601,6 +662,11 @@ if (changeAccountBtn) {
     cloned.addEventListener('click', () => {
         try { localStorage.removeItem('calendar_last_user'); } catch { }
         currentUser = null;
+        userData = { tasks: {} };
+        allTasksCache = { version: -1, tasks: [] };
+        upcomingCache = { version: -1, windowDays: 0, tasks: [] };
+        dataVersion++;
+        if (currentUserDisplay) currentUserDisplay.textContent = 'Not signed in';
         if (calendarPage) calendarPage.style.display = 'none';
         if (loginPage) {
             loginPage.style.display = 'block';
@@ -610,6 +676,16 @@ if (changeAccountBtn) {
             if (pass) pass.value = '';
             if (loginError) loginError.style.display = 'none';
             if (user) user.focus();
+        }
+        if (daysDev) daysDev.innerHTML = '';
+        const todoList = document.getElementById('todolist');
+        if (todoList) todoList.innerHTML = '';
+        const statValues = calendarStats ? calendarStats.querySelectorAll('.stat-value') : null;
+        if (statValues) {
+            statValues.forEach((el, idx) => {
+                if (idx === 3) el.textContent = '—';
+                else el.textContent = '0';
+            });
         }
     });
 }
@@ -723,6 +799,7 @@ function initKeyboardShortcuts() {
     document.addEventListener('keydown', (e) => {
         // Ignore if typing in an input
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        if (!keyboardShortcutsEnabled) return;
 
         switch (e.key.toLowerCase()) {
             case 'arrowleft':
@@ -814,13 +891,3 @@ function renderMonthStats(month, year) {
     if (busiestEl) busiestEl.textContent = busiestDay ? `Day ${busiestDay}` : '—';
 }
 
-// Ensure the calendar grid is rendered at least once on load,
-// so users always see the year, month buttons, and day cells
-// even before logging in. Authenticated users will trigger another
-// render via bootCalendarForUser.
-try {
-    renderCalendar(currentMonth, currentYear);
-    renderUpcomingTasks();
-} catch (e) {
-    console.warn('Initial render failed (will render after login):', e);
-}

@@ -26,14 +26,21 @@
 <!-- Calendar Page -->
 <div id="calendarPage" style="display:none;">
     <div id="fontgroup">
-        <button id="left_arrow" class="year-nav" type="button" aria-label="Previous year">&lt;</button>
-        <div class="current-date">
-            <span id="currentMonthLabel" aria-live="polite" aria-atomic="true">Month</span>
-            <h1 id="currentyear" aria-live="polite" aria-atomic="true">Year</h1>
+        <div class="user-info" aria-live="polite" aria-atomic="true">
+            <span id="currentUserDisplay">Not signed in</span>
         </div>
-        <button id="right_arrow" class="year-nav" type="button" aria-label="Next year">&gt;</button>
-        <button id="todayBtn" title="Jump to current month">Today</button>
-        <button id="changeAccountBtn" title="Switch account">Account</button>
+        <div class="year-controls" role="group" aria-label="Calendar navigation">
+            <button id="left_arrow" class="year-nav" type="button" aria-label="Previous year">&lt;</button>
+            <div class="current-date">
+                <span id="currentMonthLabel" aria-live="polite" aria-atomic="true">Month</span>
+                <h1 id="currentyear" aria-live="polite" aria-atomic="true">Year</h1>
+            </div>
+            <button id="right_arrow" class="year-nav" type="button" aria-label="Next year">&gt;</button>
+            <button id="todayBtn" title="Jump to current month">Today</button>
+        </div>
+        <div class="account-controls">
+            <button id="changeAccountBtn" title="Switch account">Account</button>
+        </div>
     </div>
     
     <!-- Month buttons row at top -->
