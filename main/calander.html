@@ -8,101 +8,176 @@
     <script src="/main/calander.js" defer></script>
 </head>
 <body>
-<a class="skip-link" href="#maincalander">Skip to calendar</a>
+<div class="lg-scene">
+    <div class="liquid-glass" id="lgShell">
+        <span class="ripple" aria-hidden="true"></span>
+        <div class="lg-droplets" aria-hidden="true">
+            <div class="drop"></div>
+            <div class="drop"></div>
+            <div class="drop"></div>
+            <div class="drop"></div>
+            <div class="drop"></div>
+            <div class="drop"></div>
+            <div class="drop"></div>
+            <div class="drop"></div>
+            <div class="drop"></div>
+            <div class="drop"></div>
+        </div>
+            <!-- Login Page -->
+            <div id="loginPage" class="glass">
+                <div id="authTabs">
+                    <button id="loginTab" class="auth-tab active" type="button">Login</button>
+                    <button id="registerTab" class="auth-tab" type="button">Register</button>
+                </div>
+                
+                <div id="loginSection">
+                    <h2>Login</h2>
+                    <form id="loginForm">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" required><br><br>
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required><br><br>
+                        <button type="submit">Login</button>
+                    </form>
+                    <p id="loginError" style="color:red; display:none;">Invalid username or password</p>
+                </div>
+                
+                <div id="registerSection" style="display:none;">
+                    <h2>Create Account</h2>
+                    <form id="registerForm">
+                        <label for="newUsername">Username:</label>
+                        <input type="text" id="newUsername" name="newUsername" required minlength="3"><br><br>
+                        <label for="newPassword">Password:</label>
+                        <input type="password" id="newPassword" name="newPassword" required minlength="4"><br><br>
+                        <label for="confirmPassword">Confirm Password:</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required><br><br>
+                        <button type="submit">Create Account</button>
+                    </form>
+                    <p id="registerError" style="color:red; display:none;"></p>
+                    <p id="registerSuccess" style="color:green; display:none;">Account created! Please login.</p>
+                </div>
+            </div>
 
-<!-- Login Page -->
-<div id="loginPage">
-    <h2>Login</h2>
-    <form id="loginForm">
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required><br><br>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required><br><br>
-        <button type="submit">Login</button>
-    </form>
-    <p id="loginError" style="color:red; display:none;">Invalid username or password</p>
+            <!-- Calendar Page -->
+            <div id="calendarPage" class="glass" style="display:none;">
+                <div id="fontgroup">
+                    <div class="user-info" aria-live="polite" aria-atomic="true">
+                        <span id="currentUserDisplay">Not signed in</span>
+                    </div>
+                    <div class="year-controls" role="group" aria-label="Calendar navigation">
+                        <button id="left_arrow" class="year-nav" type="button" aria-label="Previous year">&lt;</button>
+                        <div class="current-date">
+                            <span id="currentMonthLabel" aria-live="polite" aria-atomic="true">Month</span>
+                            <h1 id="currentyear" aria-live="polite" aria-atomic="true">Year</h1>
+                        </div>
+                        <button id="right_arrow" class="year-nav" type="button" aria-label="Next year">&gt;</button>
+                        <div class="liquidGlass-wrapper liquidGlass-wrapper--compact user-info" data-tone="accent">
+                            <div class="liquidGlass-effect">
+                                <div class="liquidGlass-tint"></div>
+                                <div class="liquidGlass-shine"></div>
+                            </div>
+                            <button id="todayBtn" type="button" class="liquidGlass-text" title="Jump to current month">Today</button>
+                        </div>
+                    </div>
+                    <div class="account-controls">
+                        <div class="liquidGlass-wrapper liquidGlass-wrapper--compact user-info" data-tone="secondary">
+                            <div class="liquidGlass-effect">
+                                <div class="liquidGlass-tint"></div>
+                                <div class="liquidGlass-shine"></div>
+                            </div>
+                            <button id="changeAccountBtn" type="button" class="liquidGlass-text" title="Switch account">Account</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Month buttons row at top -->
+                <div id="monthdev">
+                    <button class="monthbutton">January</button>
+                    <button class="monthbutton">February</button>
+                    <button class="monthbutton">March</button>
+                    <button class="monthbutton">April</button>
+                    <button class="monthbutton">May</button>
+                    <button class="monthbutton">June</button>
+                    <button class="monthbutton">July</button>
+                    <button class="monthbutton">August</button>
+                    <button class="monthbutton">September</button>
+                    <button class="monthbutton">October</button>
+                    <button class="monthbutton">November</button>
+                    <button class="monthbutton">December</button>
+                </div>
+
+                <section id="calendarStats" aria-live="polite" aria-label="Current month task summary">
+                    <div class="stat-item" data-stat="total">
+                        <span class="stat-label">Total Tasks</span>
+                        <span class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item" data-stat="active">
+                        <span class="stat-label">Active</span>
+                        <span class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item" data-stat="completed">
+                        <span class="stat-label">Completed</span>
+                        <span class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item" data-stat="busiest">
+                        <span class="stat-label">Busiest Day</span>
+                        <span class="stat-value">—</span>
+                    </div>
+                    <div class="stat-item" data-stat="upcoming">
+                        <span class="stat-label">Next Event</span>
+                        <span class="stat-value" id="nextEventCountdown">—</span>
+                    </div>
+                </section>
+                
+                <main id="maincalander">
+                    <div id="tododev" role="region" aria-labelledby="todoHeading">
+                        <h3 id="todoHeading">Upcoming Tasks</h3>
+                        <div id="searchbar">
+                            <input type="text" id="taskSearch" placeholder="Search tasks..." aria-label="Search tasks">
+                            <button id="clearSearch" title="Clear search" aria-label="Clear search">Clear</button>
+                        </div>
+                        <div id="filterbar" role="group" aria-label="Filter tasks">
+                            <button class="filter-btn active" data-filter="all" aria-pressed="true">All</button>
+                            <button class="filter-btn" data-filter="incomplete" aria-pressed="false">Active</button>
+                            <button class="filter-btn" data-filter="completed" aria-pressed="false">Completed</button>
+                        </div>
+                        <ul id="todolist" role="list"></ul>
+                        <input type="text" id="newTodo" placeholder="Add new task" style="display:none;">
+                        <button id="addTodo" style="display:none;">Add</button>
+                    </div>
+                <div id="daysdev" role="grid" aria-label="Calendar days" data-month="Month"></div>
+                </main>
+                
+                <!-- Footer buttons outside to-do list -->
+                <div id="footer-buttons">
+                    <div class="liquidGlass-wrapper liquidGlass-wrapper--wide user-info" data-tone="accent">
+                        <div class="liquidGlass-effect">
+                            <div class="liquidGlass-tint"></div>
+                            <div class="liquidGlass-shine"></div>
+                        </div>
+                        <button id="downloadBtn" type="button" class="liquidGlass-text">Download Backup</button>
+                    </div>
+                    <div class="liquidGlass-wrapper liquidGlass-wrapper--wide user-info" data-tone="secondary">
+                        <div class="liquidGlass-effect">
+                            <div class="liquidGlass-tint"></div>
+                            <div class="liquidGlass-shine"></div>
+                        </div>
+                        <button id="restoreBtn" type="button" class="liquidGlass-text">Restore Backup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Calendar Page -->
-<div id="calendarPage" style="display:none;">
-    <div id="fontgroup">
-        <div class="user-info" aria-live="polite" aria-atomic="true">
-            <span id="currentUserDisplay">Not signed in</span>
-        </div>
-        <div class="year-controls" role="group" aria-label="Calendar navigation">
-            <button id="left_arrow" class="year-nav" type="button" aria-label="Previous year">&lt;</button>
-            <div class="current-date">
-                <span id="currentMonthLabel" aria-live="polite" aria-atomic="true">Month</span>
-                <h1 id="currentyear" aria-live="polite" aria-atomic="true">Year</h1>
-            </div>
-            <button id="right_arrow" class="year-nav" type="button" aria-label="Next year">&gt;</button>
-            <button id="todayBtn" title="Jump to current month">Today</button>
-        </div>
-        <div class="account-controls">
-            <button id="changeAccountBtn" title="Switch account">Account</button>
-        </div>
-    </div>
-    
-    <!-- Month buttons row at top -->
-    <div id="monthdev">
-        <button class="monthbutton">January</button>
-        <button class="monthbutton">February</button>
-        <button class="monthbutton">March</button>
-        <button class="monthbutton">April</button>
-        <button class="monthbutton">May</button>
-        <button class="monthbutton">June</button>
-        <button class="monthbutton">July</button>
-        <button class="monthbutton">August</button>
-        <button class="monthbutton">September</button>
-        <button class="monthbutton">October</button>
-        <button class="monthbutton">November</button>
-        <button class="monthbutton">December</button>
-    </div>
-
-    <section id="calendarStats" aria-live="polite" aria-label="Current month task summary">
-        <div class="stat-item" data-stat="total">
-            <span class="stat-label">Total Tasks</span>
-            <span class="stat-value">0</span>
-        </div>
-        <div class="stat-item" data-stat="active">
-            <span class="stat-label">Active</span>
-            <span class="stat-value">0</span>
-        </div>
-        <div class="stat-item" data-stat="completed">
-            <span class="stat-label">Completed</span>
-            <span class="stat-value">0</span>
-        </div>
-        <div class="stat-item" data-stat="busiest">
-            <span class="stat-label">Busiest Day</span>
-            <span class="stat-value">—</span>
-        </div>
-    </section>
-    
-    <main id="maincalander">
-        <div id="tododev" role="region" aria-labelledby="todoHeading">
-            <h3 id="todoHeading">Upcoming Tasks</h3>
-            <div id="searchbar">
-                <input type="text" id="taskSearch" placeholder="Search tasks..." aria-label="Search tasks">
-                <button id="clearSearch" title="Clear search" aria-label="Clear search">Clear</button>
-            </div>
-            <div id="filterbar" role="group" aria-label="Filter tasks">
-                <button class="filter-btn active" data-filter="all" aria-pressed="true">All</button>
-                <button class="filter-btn" data-filter="incomplete" aria-pressed="false">Active</button>
-                <button class="filter-btn" data-filter="completed" aria-pressed="false">Completed</button>
-            </div>
-            <ul id="todolist" role="list"></ul>
-            <input type="text" id="newTodo" placeholder="Add new task" style="display:none;">
-            <button id="addTodo" style="display:none;">Add</button>
-        </div>
-        <div id="daysdev" role="grid" aria-label="Calendar days"></div>
-    </main>
-    
-    <!-- Footer buttons outside to-do list -->
-    <div id="footer-buttons">
-        <button id="downloadBtn">Download Backup</button>
-        <button id="restoreBtn">Restore Backup</button>
-    </div>
-</div>
+<svg class="liquidGlass-defs" aria-hidden="true">
+    <defs>
+        <filter id="glass-distortion">
+            <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="2" seed="8" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="B"/>
+        </filter>
+    </defs>
+</svg>
 
 </body>
 </html>

@@ -9,16 +9,23 @@ function ensureDayArray(year, monthIndex, day) {
 }
 // Enhanced calendar with per-day tasks, upcoming list, and persistent per-user storage
 
-// Simple dictionary of users
-const users = {
-    'admin': 'admin123',
-    'user1': 'pass1',
-    'u1': 'p1',
-};
+// Simple dictionary of users - now stored in localStorage
+let users = JSON.parse(localStorage.getItem('calendarUsers') || '{"admin": "admin123", "user1": "pass1", "u1": "p1"}');
+
+function saveUsers() {
+    localStorage.setItem('calendarUsers', JSON.stringify(users));
+}
 
 // Elements (available because script is defer)
 const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+const loginTab = document.getElementById('loginTab');
+const registerTab = document.getElementById('registerTab');
+const loginSection = document.getElementById('loginSection');
+const registerSection = document.getElementById('registerSection');
 const loginError = document.getElementById('loginError');
+const registerError = document.getElementById('registerError');
+const registerSuccess = document.getElementById('registerSuccess');
 const loginPage = document.getElementById('loginPage');
 const calendarPage = document.getElementById('calendarPage');
 
@@ -34,7 +41,7 @@ const currentUserDisplay = document.getElementById('currentUserDisplay');
 const calendarStats = document.getElementById('calendarStats');
 
 let currentUser = null;
-let userData = { tasks: {} }; // tasks: { 'YYYY-MM': { '1': [ {id, text, completed, createdAt} ] } }
+let userData = { tasks: {} }; // tasks: { 'YYYY-MM': { '1': [ {id, text, completed, createdAt, time, recurring, priority} ] } }
 let currentFilter = 'all'; // 'all', 'completed', 'incomplete'
 // Compact/comfort mode removed
 let dataVersion = 0;
@@ -42,6 +49,7 @@ let allTasksCache = { version: -1, tasks: [] };
 let upcomingCache = { version: -1, windowDays: 0, tasks: [] };
 let keyboardShortcutsEnabled = true;
 let filtersInitialized = false;
+let dailyTasksProcessed = false;
 
 let currentYear = new Date().getFullYear();
 let currentMonth = new Date().getMonth(); // 0-11
@@ -53,6 +61,50 @@ const monthNames = [
 const daysnames = [
     'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ];
+
+/* -------------------- Background image (random each load) -------------------- */
+const BG_IMAGES = [
+    'ed82529805250b004815da6debb66851.png',
+    'pexels-bri-schneiter-28802-346529.jpg',
+    'pexels-elti-meshau-107925-333850.jpg',
+    'pexels-enginakyurt-1435752.jpg',
+    'pexels-gdtography-277628-911738.jpg',
+    'pexels-irina-634548.jpg',
+    'pexels-jplenio-1103970.jpg',
+    'pexels-junior-teixeira-1064069-2047905.jpg',
+    'pexels-lum3n-44775-295771.jpg',
+    'pexels-magda-ehlers-pexels-960137.jpg',
+    'pexels-nickcollins-1292998.jpg',
+    'pexels-pixabay-268533.jpg',
+    'pexels-pixabay-289586.jpg',
+    'pexels-pixabay-326333.jpg',
+    'pexels-pixabay-33545.jpg',
+    'pexels-scottwebb-1022928.jpg',
+    'pexels-souvenirpixels-417074.jpg',
+    'pexels-umaraffan499-22794.jpg',
+    'pexels-zaksheuskaya-709412-1616403.jpg',
+];
+
+let __bgApplied = false;
+function setRandomBackground() {
+    if (__bgApplied) return;
+    try {
+        if (!document || !document.body) return;
+        const idx = Math.floor(Math.random() * BG_IMAGES.length);
+        const src = `/main/bg/${BG_IMAGES[idx]}`;
+        const b = document.body;
+        b.style.backgroundImage = `url('${src}')`;
+        b.style.backgroundRepeat = 'no-repeat';
+        b.style.backgroundAttachment = 'fixed';
+        b.style.backgroundSize = 'cover';
+        b.style.backgroundPosition = 'center';
+        __bgApplied = true;
+    } catch { }
+}
+
+// Apply immediately (script is defer) and also on window load as a fallback
+setRandomBackground();
+window.addEventListener('load', setRandomBackground);
 
 /* -------------------- Persistence helpers -------------------- */
 function storageKeyFor(username) {
@@ -192,9 +244,6 @@ function renderCalendar(month = currentMonth, year = currentYear) {
         input.className = 'task-input';
         input.type = 'text';
         input.placeholder = 'Add task…';
-        const addBtn = document.createElement('button');
-        addBtn.className = 'task-add';
-        addBtn.textContent = '+';
 
         // Priority select
         const prioritySelectEl = document.createElement('select');
@@ -202,12 +251,32 @@ function renderCalendar(month = currentMonth, year = currentYear) {
         prioritySelectEl.id = `priority-${year}-${month}-${dayNum}`;
         prioritySelectEl.innerHTML = '<option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option>';
 
+        // Time input
+        const timeInputEl = document.createElement('input');
+        timeInputEl.type = 'time';
+        timeInputEl.className = 'task-time-input';
+        timeInputEl.id = `time-${year}-${month}-${dayNum}`;
+
+        // Recurring checkbox
+        const recurringLabelEl = document.createElement('label');
+        recurringLabelEl.className = 'task-recurring-label';
+        const recurringCheckEl = document.createElement('input');
+        recurringCheckEl.type = 'checkbox';
+        recurringCheckEl.className = 'task-recurring-check';
+        recurringCheckEl.id = `recurring-${year}-${month}-${dayNum}`;
+        const recurringTextEl = document.createElement('span');
+        recurringTextEl.textContent = 'Daily';
+        recurringLabelEl.appendChild(recurringCheckEl);
+        recurringLabelEl.appendChild(recurringTextEl);
+
         const handleTaskAdd = () => {
             const val = input.value.trim();
             if (!val) return;
-            addTask(year, month, dayNum, val, prioritySelectEl ? prioritySelectEl.value : 'medium');
+            addTask(year, month, dayNum, val, prioritySelectEl ? prioritySelectEl.value : 'medium', false, timeInputEl.value, recurringCheckEl.checked);
             input.value = '';
             if (prioritySelectEl) prioritySelectEl.value = 'medium';
+            timeInputEl.value = '';
+            recurringCheckEl.checked = false;
             // Re-render day and upcoming list
             renderTasksForDay(list, dayNum, month, year);
             renderUpcomingTasks();
@@ -215,7 +284,6 @@ function renderCalendar(month = currentMonth, year = currentYear) {
             input.focus();
         };
 
-        addBtn.addEventListener('click', handleTaskAdd);
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
@@ -228,10 +296,17 @@ function renderCalendar(month = currentMonth, year = currentYear) {
                 handleTaskAdd();
             }
         });
+        timeInputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleTaskAdd();
+            }
+        });
 
         inputRow.appendChild(input);
+        inputRow.appendChild(timeInputEl);
         inputRow.appendChild(prioritySelectEl);
-        inputRow.appendChild(addBtn);
+        inputRow.appendChild(recurringLabelEl);
         dayEl.appendChild(inputRow);
 
         // Drag-and-drop handlers for rescheduling tasks
@@ -348,10 +423,45 @@ function renderTasksForDay(listEl, dayNum, month, year) {
 
         const text = document.createElement('span');
         text.className = 'task-text';
-        text.textContent = task.text;
+
+        // Display time if available
+        if (task.time) {
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'task-time-badge';
+            timeSpan.textContent = task.time;
+            text.appendChild(timeSpan);
+            text.appendChild(document.createTextNode(' '));
+        }
+
+        // Display recurring badge if daily
+        if (task.recurring) {
+            const recurringSpan = document.createElement('span');
+            recurringSpan.className = 'task-recurring-badge';
+            recurringSpan.textContent = '↻';
+            recurringSpan.title = 'Daily recurring task';
+            text.appendChild(recurringSpan);
+            text.appendChild(document.createTextNode(' '));
+        }
+
+        text.appendChild(document.createTextNode(task.text));
 
         const actions = document.createElement('span');
         actions.className = 'task-actions';
+
+        // Edit button
+        const edit = document.createElement('button');
+        edit.className = 'task-btn edit';
+        edit.title = 'Edit task';
+        edit.textContent = '✎';
+        edit.addEventListener('click', () => {
+            const newText = prompt('Edit task:', task.text);
+            if (newText && newText.trim()) {
+                updateTask(year, month, dayNum, task.id, { text: newText.trim() });
+                renderTasksForDay(listEl, dayNum, month, year);
+                renderUpcomingTasks();
+            }
+        });
+
         const del = document.createElement('button');
         del.className = 'task-btn delete';
         del.title = 'Delete task';
@@ -363,6 +473,7 @@ function renderTasksForDay(listEl, dayNum, month, year) {
             renderMonthStats(currentMonth, currentYear);
         });
 
+        actions.appendChild(edit);
         actions.appendChild(del);
         li.appendChild(cb);
         li.appendChild(text);
@@ -401,6 +512,10 @@ function renderUpcomingTasks() {
         li.setAttribute('data-priority', item.priority || 'medium');
         const dateStr = `${monthNames[item.date.getMonth()].slice(0, 3)} ${String(item.date.getDate()).padStart(2, '0')}`;
 
+        // Calculate days until task
+        const daysUntil = Math.ceil((item.date - today()) / (1000 * 60 * 60 * 24));
+        const countdownBadge = daysUntil === 0 ? '(Today)' : daysUntil === 1 ? '(Tomorrow)' : `(${daysUntil}d)`;
+
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.checked = !!item.completed;
@@ -417,13 +532,23 @@ function renderUpcomingTasks() {
         text.style.border = 'none';
         text.style.textAlign = 'left';
         text.style.cursor = 'pointer';
-        text.textContent = `[${dateStr}] ${item.text}`;
+
+        // Build text content with time and countdown
+        let textContent = `[${dateStr}] `;
+        if (item.time) {
+            textContent += `${item.time} `;
+        }
+        if (item.recurring) {
+            textContent += '↻ ';
+        }
+        textContent += `${item.text} ${countdownBadge}`;
+        text.textContent = textContent;
+
         text.setAttribute('aria-label', `Jump to ${item.text} on ${dateStr}`);
         text.addEventListener('click', () => {
             currentYear = item.year;
             currentMonth = item.monthIndex;
             renderCalendar(currentMonth, currentYear);
-            // Optionally, scroll to the day if needed later
         });
 
         li.appendChild(cb);
@@ -463,21 +588,59 @@ function collectUpcomingTasks(windowDays = 7) {
 }
 
 /* -------------------- Mutations -------------------- */
-function addTask(year, monthIndex, day, text, priority = 'medium', completed = false) {
+function addTask(year, monthIndex, day, text, priority = 'medium', completed = false, time = '', recurring = false) {
     const arr = ensureDayArray(year, monthIndex, day);
-    arr.push({ id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, text, completed: completed, createdAt: Date.now(), priority });
+    arr.push({
+        id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        text,
+        completed: completed,
+        createdAt: Date.now(),
+        priority,
+        time: time || '',
+        recurring: recurring || false
+    });
+    sortTaskArray(arr);
     saveUserData();
     dataVersion++;
 }
-function toggleTask(year, monthIndex, day, id, completed) {
+
+function sortTaskArray(arr) {
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    arr.sort((a, b) => {
+        // First sort by completion status (incomplete first)
+        if (a.completed !== b.completed) return a.completed ? 1 : -1;
+
+        // Then by priority
+        const priorityDiff = priorityOrder[a.priority || 'medium'] - priorityOrder[b.priority || 'medium'];
+        if (priorityDiff !== 0) return priorityDiff;
+
+        // Then by time if available
+        if (a.time && b.time) {
+            return a.time.localeCompare(b.time);
+        }
+        if (a.time) return -1;
+        if (b.time) return 1;
+
+        // Finally by creation time
+        return a.createdAt - b.createdAt;
+    });
+}
+
+function updateTask(year, monthIndex, day, id, updates) {
     const arr = ensureDayArray(year, monthIndex, day);
     const idx = arr.findIndex(t => t.id === id);
     if (idx !== -1) {
-        arr[idx].completed = !!completed;
+        arr[idx] = { ...arr[idx], ...updates };
+        sortTaskArray(arr);
         saveUserData();
         dataVersion++;
     }
 }
+
+function toggleTask(year, monthIndex, day, id, completed) {
+    updateTask(year, monthIndex, day, id, { completed: !!completed });
+}
+
 function deleteTask(year, monthIndex, day, id) {
     const arr = ensureDayArray(year, monthIndex, day);
     const next = arr.filter(t => t.id !== id);
@@ -485,6 +648,33 @@ function deleteTask(year, monthIndex, day, id) {
     userData.tasks[mk][day] = next;
     saveUserData();
     dataVersion++;
+}
+
+function processDailyTasks() {
+    if (dailyTasksProcessed) return;
+    const todayObj = today();
+    const todayKey = getMonthKey(todayObj.getFullYear(), todayObj.getMonth());
+    const todayDay = todayObj.getDate();
+
+    // Copy all recurring daily tasks to today if they don't already exist
+    for (const mk of Object.keys(userData.tasks || {})) {
+        const daysObj = userData.tasks[mk];
+        for (const dStr of Object.keys(daysObj)) {
+            const tasks = daysObj[dStr];
+            tasks.forEach(task => {
+                if (task.recurring && !task.completed) {
+                    // Check if this task already exists for today
+                    const todayTasks = userData.tasks[todayKey]?.[todayDay] || [];
+                    const exists = todayTasks.some(t => t.text === task.text && t.recurring);
+                    if (!exists && (mk !== todayKey || parseInt(dStr) !== todayDay)) {
+                        addTask(todayObj.getFullYear(), todayObj.getMonth(), todayDay,
+                            task.text, task.priority, false, task.time, true);
+                    }
+                }
+            });
+        }
+    }
+    dailyTasksProcessed = true;
 }
 
 /* -------------------- Auth + Boot -------------------- */
@@ -517,8 +707,88 @@ function bootCalendarForUser(username) {
 
     attachBackupTools();
     attachFilterButtons();
+    processDailyTasks(); // Process daily recurring tasks
     renderCalendar(currentMonth, currentYear);
     renderUpcomingTasks();
+}
+
+// Tab switching for login/register
+if (loginTab && registerTab && loginSection && registerSection) {
+    loginTab.addEventListener('click', () => {
+        loginTab.classList.add('active');
+        registerTab.classList.remove('active');
+        loginSection.style.display = 'block';
+        registerSection.style.display = 'none';
+    });
+
+    registerTab.addEventListener('click', () => {
+        registerTab.classList.add('active');
+        loginTab.classList.remove('active');
+        registerSection.style.display = 'block';
+        loginSection.style.display = 'none';
+    });
+}
+
+// Registration form
+if (registerForm) {
+    registerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('newUsername').value.trim().toLowerCase();
+        const password = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (registerError) registerError.style.display = 'none';
+        if (registerSuccess) registerSuccess.style.display = 'none';
+
+        // Validation
+        if (username.length < 3) {
+            if (registerError) {
+                registerError.textContent = 'Username must be at least 3 characters';
+                registerError.style.display = 'block';
+            }
+            return;
+        }
+
+        if (password.length < 4) {
+            if (registerError) {
+                registerError.textContent = 'Password must be at least 4 characters';
+                registerError.style.display = 'block';
+            }
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            if (registerError) {
+                registerError.textContent = 'Passwords do not match';
+                registerError.style.display = 'block';
+            }
+            return;
+        }
+
+        if (users[username]) {
+            if (registerError) {
+                registerError.textContent = 'Username already exists';
+                registerError.style.display = 'block';
+            }
+            return;
+        }
+
+        // Create account
+        users[username] = password;
+        saveUsers();
+
+        if (registerSuccess) registerSuccess.style.display = 'block';
+
+        // Clear form
+        document.getElementById('newUsername').value = '';
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmPassword').value = '';
+
+        // Switch to login tab after 1.5 seconds
+        setTimeout(() => {
+            if (loginTab) loginTab.click();
+        }, 1500);
+    });
 }
 
 // Standard login flow
@@ -889,5 +1159,28 @@ function renderMonthStats(month, year) {
     if (activeEl) activeEl.textContent = active;
     if (completedEl) completedEl.textContent = completed;
     if (busiestEl) busiestEl.textContent = busiestDay ? `Day ${busiestDay}` : '—';
+
+    // Calculate next upcoming event with countdown
+    const nextEventEl = document.getElementById('nextEventCountdown');
+    if (nextEventEl) {
+        const upcoming = collectUpcomingTasks(365).filter(t => !t.completed);
+        if (upcoming.length > 0) {
+            const next = upcoming[0];
+            const daysUntil = Math.ceil((next.date - today()) / (1000 * 60 * 60 * 24));
+            if (daysUntil === 0) {
+                nextEventEl.textContent = 'Today!';
+                nextEventEl.style.color = 'var(--accent-4)';
+            } else if (daysUntil === 1) {
+                nextEventEl.textContent = 'Tomorrow';
+                nextEventEl.style.color = 'var(--accent-3)';
+            } else {
+                nextEventEl.textContent = `${daysUntil} days`;
+                nextEventEl.style.color = 'var(--ink)';
+            }
+        } else {
+            nextEventEl.textContent = '—';
+            nextEventEl.style.color = 'var(--ink)';
+        }
+    }
 }
 
