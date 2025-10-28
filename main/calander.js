@@ -896,15 +896,31 @@ function attachFilterButtons() {
 }
 
 /* -------------------- Navigation -------------------- */
-leftArrow.addEventListener('click', () => {
-    currentYear--;
-    renderCalendar(currentMonth, currentYear);
-});
+if (leftArrow) {
+    leftArrow.addEventListener('click', () => {
+        if (currentMonth === 0) {
+            currentMonth = 11;
+            currentYear--;
+        } else {
+            currentMonth--;
+        }
+        renderCalendar(currentMonth, currentYear);
+        renderUpcomingTasks();
+    });
+}
 
-rightArrow.addEventListener('click', () => {
-    currentYear++;
-    renderCalendar(currentMonth, currentYear);
-});
+if (rightArrow) {
+    rightArrow.addEventListener('click', () => {
+        if (currentMonth === 11) {
+            currentMonth = 0;
+            currentYear++;
+        } else {
+            currentMonth++;
+        }
+        renderCalendar(currentMonth, currentYear);
+        renderUpcomingTasks();
+    });
+}
 
 monthButtons.forEach((btn, index) => {
     btn.addEventListener('click', () => {

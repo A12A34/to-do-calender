@@ -4,6 +4,9 @@
   color: #fff;
   box-shadow: 0 6px 18px rgba(59,130,246,0.25);
 }
+* {
+  color: white;
+}
 
 @media (prefers-color-scheme: dark) {
   .user-info,
@@ -24,6 +27,8 @@
   .filter-btn.active,
   .filter-btn[aria-pressed="true"] {
     background: var(--accent);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(59,130,246,0.25);
   }
 }
 /* Flexible Calendar UI (variable-driven, responsive) */
@@ -52,7 +57,7 @@
   --glass-shadow: 0 8px 32px rgba(0,0,0,0.1);
 
   /* Layout + borders */
-  --border: 1px; /* thinner for glass */
+  --border: 1px;
   --border-thick: 2px;
   --radius-pill: 999px;
   --radius-xl: clamp(32px, 3.5vw, 48px);
@@ -67,7 +72,18 @@
   --fs-lg: clamp(0.9rem, 1.8vw, 1.25rem);
 
   /* Component sizing */
-  --task-control-min-height: clamp(46px, 8%, 66px);
+  --task-control-min-height: clamp(2.8rem, 4vw, 3.4rem);
+  --task-list-gap: clamp(0.75rem, 1.2vw, 1rem);
+  --task-item-pad-y: clamp(0.7rem, 1vw, 0.9rem);
+  --task-item-pad-x: clamp(0.9rem, 1.4vw, 1.5rem);
+  --task-item-gap: clamp(0.6rem, 1vw, 0.9rem);
+  --task-item-min-height: clamp(3.2rem, 4.2vw, 3.6rem);
+  --task-field-gap: clamp(0.6rem, 1vw, 0.9rem);
+  --task-input-col: 48%;
+  --task-time-col: 18%;
+  --task-priority-col: 16%;
+  --task-recurring-col: 18%;
+  --task-action-gap: clamp(0.4rem, 0.6vw, 0.65rem);
 
   /* Liquid glass palette */
   --lg-bg1: rgba(255,255,255,0.08);
@@ -79,8 +95,8 @@
   --lg-radius: 18px;
 
   /* Day sizing */
-  --day-pad: clamp(0.8%, 1.5vh, 1.5%);
-  --day-min-h: clamp(12vh, 14vh, 18vh);
+  --day-pad: clamp(1.1rem, 1.8vw, 2.2rem);
+  --day-min-h: clamp(18rem, 22vw, 24rem);
 
   /* Container max width for large screens */
   --container-max: 1400px;
@@ -91,12 +107,16 @@
     --ink: #e5e7eb;
     --panel-bg: rgba(15,23,42,0.2); /* dark glass */
     --app-bg-1: #0b1220;
-    --app-bg-2: #0c1a33;
+    --app-bg-2: #0e1530;
     --app-bg-3: #092026;
-    --muted: rgba(31,42,68,0.3);
-    --muted-2: rgba(13,59,54,0.3);
+    --accent: #60a5fa;
+    --accent-2: #34d399;
+    --accent-3: #fb923c;
+    --accent-4: #8b5cf6;
+    --danger: #f87171;
+    --muted: rgba(30,41,59,0.35);
+    --muted-2: rgba(21,128,61,0.25);
     --muted-3: rgba(59,42,31,0.3);
-  --accent-4: #8b5cf6;
     --glass-border: 1px solid rgba(255,255,255,0.1);
     --glass-shadow: 0 8px 32px rgba(0,0,0,0.3);
   }
@@ -158,7 +178,7 @@ body {
 
 .liquid-glass {
   position: relative;
-  width: 95%;
+  width: 100%;
   padding: clamp(20px, 3vw, 32px);
   border-radius: var(--lg-radius);
   background: transparent;
@@ -260,7 +280,7 @@ body {
   color: inherit;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  pointer-events: none;
+  pointer-events: auto;
   border: var(--glass-border);
 }
 
@@ -317,13 +337,13 @@ body {
   background: transparent;
   border: none;
   box-shadow: none;
-  width: min(95%, 520px);
+  width: 100%;
   margin: clamp(3vh, 6vh, 8vh) auto;
 }
 
 /* Main calendar container — large rounded outline */
 #calendarPage {
-  width: 95%;
+  width: 100%;
   border-radius: clamp(40px, 4vw, 60px);
   padding: clamp(1.5%, 2vw, 2.5%);
   margin: clamp(2vh, 4vh, 5vh) auto;
@@ -498,6 +518,7 @@ body {
   backdrop-filter: var(--glass-blur);
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
   gap: clamp(0.5vw, 0.8vw, 1vw);
   box-shadow: var(--glass-shadow);
@@ -537,6 +558,8 @@ input:focus-visible, button:focus-visible {
   flex-direction: column;
   gap: var(--gap);
   align-items: stretch;
+  justify-content: center;
+  width: 100%;
 }
 
 #calendarStats {
@@ -548,21 +571,21 @@ input:focus-visible, button:focus-visible {
 
 .stat-item {
   border: var(--glass-border);
-  border-radius: var(--radius-pill);
+  font-size: calc(var(--fs-sm) + 0.1rem);
   padding: clamp(0.6rem, 1vw, 1rem);
   background: var(--panel-bg);
   backdrop-filter: var(--glass-blur);
   box-shadow: var(--glass-shadow);
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  text-align: center;
-}
-
-.stat-label {
-  font-size: calc(var(--fs-sm) - 0.05rem);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  border: var(--glass-border);
+  border-radius: var(--radius-pill);
+  padding: 0.35rem 0.75rem;
+  cursor: pointer;
+  background: rgba(255,255,255,0.35);
+  backdrop-filter: var(--glass-blur);
+  font-weight: 700;
+  font-size: calc(var(--fs-sm) - 0.02rem);
   color: rgba(11,11,11,0.65);
 }
 
@@ -573,11 +596,11 @@ input:focus-visible, button:focus-visible {
 
 /* Center: Calendar board with top "Month" pill label */
 #daysdev {
-  margin-top: 10px;
+  margin-top: 30px;
   position: relative;
   border: var(--glass-border);
   border-radius: var(--radius-lg);
-  padding: clamp(1%, 1.5vw, 1.8%);
+  padding: clamp(1.2rem, 1.8vw, 2rem);
   background: var(--panel-bg);
   backdrop-filter: var(--glass-blur);
   display: grid;
@@ -585,6 +608,7 @@ input:focus-visible, button:focus-visible {
   gap: clamp(0.4vw, 0.8vw, 1vw);
   align-content: start;
   box-shadow: var(--glass-shadow);
+  width: 100%;
 }
 
 /* Small pill label centered along the top border */
@@ -616,6 +640,7 @@ input:focus-visible, button:focus-visible {
   background: var(--muted-3);
   backdrop-filter: var(--glass-blur);
   font-size: var(--fs-sm);
+  width: 100%;
 }
 
 .day {
@@ -628,9 +653,15 @@ input:focus-visible, button:focus-visible {
   min-height: var(--day-min-h);
   display: flex;
   flex-direction: column;
-  gap: clamp(0.4vh, 0.6vh, 0.8vh);
+  gap: clamp(0.9rem, 1.5vw, 1.6rem);
+  align-items: stretch;
+  justify-content: flex-start;
   box-shadow: var(--glass-shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+}
+.day > * {
+  width: 100%;
 }
 .day:hover {
   transform: translateY(-0.3vh);
@@ -665,29 +696,36 @@ input:focus-visible, button:focus-visible {
 
 /* Day internals for flexible tasks */
 .day-header {
-  display: inline-block;
-  min-width: clamp(30px, 3vw, 40px);
-  padding: 0.4vh clamp(0.8vw, 1.2vw, 1.5vw);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 95%;
+  margin: 0 auto;
+  padding: clamp(0.45rem, 0.9vw, 0.75rem) clamp(1rem, 1.6vw, 1.8rem);
   border: var(--glass-border);
   border-radius: var(--radius-pill);
   font-weight: 800;
   background: var(--muted);
   backdrop-filter: var(--glass-blur);
-  font-size: var(--fs-sm);
-  align-self: center;
+  font-size: calc(var(--fs-sm) + 0.22rem);
+  letter-spacing: 0.05em;
 }
 
 .day-name-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 95%;
+  margin: 0 auto;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: calc(var(--fs-sm) - 0.05rem);
-  font-weight: 600;
-  color: rgba(11,11,11,0.7);
-  background: rgba(255,255,255,0.35);
+  letter-spacing: 0.12em;
+  font-size: calc(var(--fs-sm) + 0.05rem);
+  font-weight: 700;
+  color: rgba(11,11,11,0.75);
+  background: rgba(255,255,255,0.45);
   border-radius: var(--radius-pill);
-  padding: 0.3rem 0.6rem;
-  align-self: center;
-  backdrop-filter: blur(8px);
+  padding: clamp(0.4rem, 0.8vw, 0.65rem) clamp(1rem, 1.6vw, 1.8rem);
+  backdrop-filter: blur(10px);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -703,31 +741,57 @@ input:focus-visible, button:focus-visible {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: clamp(0.4vh, 0.5vh, 0.7vh);
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: var(--task-list-gap);
+  width: 100%;
 }
 
 .task-item {
+  width: 100%;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: clamp(0.5vw, 0.7vw, 0.9vw);
+  justify-content: flex-start;
+  gap: var(--task-item-gap);
   border: var(--glass-border);
-  border-radius: var(--radius-pill);
-  padding: clamp(0.45rem, 0.8vh, 0.9rem) clamp(0.7vw, 0.9vw, 1.1vw);
+  border-radius: clamp(1.2rem, 2vw, 2.4rem);
+  padding: var(--task-item-pad-y) var(--task-item-pad-x);
   background: var(--muted-3);
   backdrop-filter: var(--glass-blur);
-  font-size: var(--fs-sm);
+  font-size: calc(var(--fs-sm) + 0.05rem);
   transition: background 0.2s ease;
-  min-height: clamp(44px, 6vh, 56px);
+  min-height: var(--task-item-min-height);
 }
 .task-item:hover {
   background: var(--muted-3);
   filter: brightness(1.05);
 }
 .task-item.completed { opacity: 0.6; text-decoration: line-through; }
-.task-text { flex: 1; font-size: var(--fs-sm); }
-.task-text { word-break: break-word; overflow-wrap: anywhere; }
-.task-actions { display: inline-flex; gap: clamp(0.4vw, 0.5vw, 0.6vw); align-items: center; }
-.task-btn { border: var(--glass-border); border-radius: var(--radius-pill); padding: clamp(0.2vh, 0.3vh, 0.4vh) clamp(0.4vw, 0.5vw, 0.7vw); cursor: pointer; background: var(--muted-3); backdrop-filter: var(--glass-blur); font-weight: 700; font-size: var(--fs-sm); }
+.task-text {
+  flex: 1 1 auto;
+  font-size: calc(var(--fs-sm) + 0.12rem);
+  line-height: 1.45;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.task-actions {
+  display: inline-flex;
+  flex-direction: row;
+  gap: var(--task-action-gap);
+  align-items: center;
+  align-self: center;
+}
+.task-btn {
+  border: var(--glass-border);
+  border-radius: var(--radius-pill);
+  padding: clamp(0.35rem, 0.6vw, 0.55rem) clamp(0.55rem, 0.8vw, 0.8rem);
+  cursor: pointer;
+  background: rgba(255,255,255,0.35);
+  backdrop-filter: var(--glass-blur);
+  font-weight: 700;
+  font-size: calc(var(--fs-sm) - 0.02rem);
+}
 .task-btn.delete { background: #fff; color: var(--danger); }
 
 .task-item[data-priority="high"] { border-color: rgba(239,68,68,0.6); box-shadow: 0 4px 12px rgba(239,68,68,0.1); }
@@ -739,53 +803,52 @@ input:focus-visible, button:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.1rem 0.45rem;
+  padding: 0.2rem 0.5rem;
   border-radius: var(--radius-pill);
   font-size: 0.7rem;
   font-weight: 700;
-  margin-right: 0.25rem;
   background: rgba(59,130,246,0.2);
+  margin-right: 0.25rem;
 }
 
 .task-recurring-badge {
   background: rgba(168,85,247,0.2);
 }
-
-
 .task-input-row {
-  display: flex;
-  gap: clamp(0.45vw, 0.6vw, 0.9vw);
-  margin-top: clamp(0.4vh, 0.6vh, 0.9vh);
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: var(--task-field-gap);
+  margin-top: var(--task-field-gap);
+  width: 100%;
+}
+
+.task-input-row > * {
+  width: 100%;
+  min-width: 0;
 }
 
 .task-input {
-  flex: 1 1 100%;
-  min-width: 0;
   border: var(--glass-border);
   border-radius: var(--radius-pill);
-  padding: 1.4% 2.5%;
+  padding: var(--task-item-pad-y) var(--task-item-pad-x);
   font-size: var(--fs-sm);
   background: var(--panel-bg);
   backdrop-filter: var(--glass-blur);
   min-height: var(--task-control-min-height);
+  width: 100%;
 }
 
 .task-time-input,
 .task-priority-select {
   border: var(--glass-border);
   border-radius: var(--radius-pill);
-  padding: 1.2% 2.2%;
+  padding: var(--task-item-pad-y) var(--task-item-pad-x);
   font-size: var(--fs-sm);
   background: var(--panel-bg);
   backdrop-filter: var(--glass-blur);
   color: var(--ink);
   min-height: var(--task-control-min-height);
-  flex: 0 1 auto;
-}
-
-.task-time-input {
-  width: auto;
+  width: 100%;
 }
 
 .task-priority-select {
@@ -801,14 +864,16 @@ input:focus-visible, button:focus-visible {
 .task-recurring-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  padding: 1.2% 2.2%;
+  justify-content: center;
+  gap: calc(var(--task-item-gap) * 0.8);
+  padding: var(--task-item-pad-y) var(--task-item-pad-x);
   border-radius: var(--radius-pill);
   border: var(--glass-border);
   background: rgba(168,85,247,0.15);
   font-size: var(--fs-sm);
   cursor: pointer;
   min-height: var(--task-control-min-height);
+  width: 100%;
 }
 
 .task-recurring-check {
@@ -911,18 +976,20 @@ input:focus-visible, button:focus-visible {
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: clamp(0.6vh, 0.8vh, 1vh);
+  gap: var(--task-list-gap);
 }
 
 #todolist li {
   border: var(--glass-border);
   border-radius: var(--radius-pill);
-  padding: 0.4vh clamp(0.6vw, 0.8vw, 1vw);
+  padding: var(--task-item-pad-y) var(--task-item-pad-x);
   background: var(--muted-3);
   backdrop-filter: var(--glass-blur);
   display: flex;
   align-items: center;
-  gap: clamp(0.4vw, 0.6vw, 0.8vw);
+  gap: var(--task-item-gap);
+  min-height: var(--task-item-min-height);
+  width: 100%;
   font-size: calc(var(--fs-sm) - 0.05rem);
 }
 
@@ -978,7 +1045,7 @@ input:focus-visible, button:focus-visible {
 @media (max-width: 1024px) {
   #tododev { margin-top: clamp(2vh, 3vh, 4vh); width: 100%; }
   #daysdev { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  .day { min-height: clamp(10vh, 12vh, 16vh); }
+  .day { min-height: 100%; }
   .monthbutton { font-size: calc(var(--fs-sm) - 0.05rem); padding: 0.5vh clamp(0.8vw, 1vw, 1.2vw); }
 }
 
@@ -988,7 +1055,7 @@ input:focus-visible, button:focus-visible {
   .day-name { display: none; }
   #daysdev::before { top: -1.5vh; font-size: var(--fs-sm); }
   #fontgroup { gap: 1.2vw; }
-  .day { min-height: clamp(8vh, 10vh, 14vh); }
+  .day { min-height: 100%; }
   .monthbutton { font-size: clamp(0.55rem, 1.2vw, 0.65rem); padding: 0.4vh 1vw; min-height: clamp(26px, 3.5vh, 32px); }
   #monthdev { gap: 0.5vw; padding: 0.8vh 1vw; }
   #footer-buttons { flex-direction: column; gap: 1.5vh; }
