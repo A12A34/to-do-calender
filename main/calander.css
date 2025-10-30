@@ -249,7 +249,7 @@ body {
 .liquidGlass-effect {
   position: absolute;
   z-index: 0;
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(2px);
   overflow: hidden;
   pointer-events: none;
 }
@@ -572,6 +572,7 @@ input:focus-visible, button:focus-visible {
   background: var(--panel-bg);
   backdrop-filter: var(--glass-blur);
   box-shadow: var(--glass-shadow);
+  text-align: center; ;
   display: flex;
   flex-direction: column;
   border: var(--glass-border);
