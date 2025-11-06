@@ -25,9 +25,9 @@
         </div>
             <!-- Login Page -->
             <div id="loginPage" class="glass">
-                <div id="authTabs">
-                    <button id="loginTab" class="auth-tab active" type="button">Login</button>
-                    <button id="registerTab" class="auth-tab" type="button">Register</button>
+                <div id="authTabs" class="log_button_div">
+                    <button id="loginTab" class="auth-tab logbutton active" type="button">Login</button>
+                    <button id="registerTab" class="auth-tab logbutton" type="button">Register</button>
                 </div>
                 
                 <div id="loginSection">
@@ -37,7 +37,7 @@
                         <input type="text" id="username" name="username" class="task-input" placeholder="enter username:" required><br><br>
                         <label for="password">Password:</label>
                         <input type="password" id="password" name="password" class="task-input" placeholder="enter password:" required><br><br>
-                        <button type="submit">Login</button>
+                        <button type="submit" class="submit-button liquid-glass">Login</button>
                     </form>
                     
                     <p id="loginError" style="color:red; display:none;">Invalid username or password</p>
@@ -52,7 +52,7 @@
                         <input type="password" id="newPassword" name="newPassword" class="task-input" placeholder="enter password:" required minlength="4"><br><br>
                         <label for="confirmPassword">Confirm Password:</label>
                         <input type="password" id="confirmPassword" name="confirmPassword" class="task-input" placeholder="confirm password:" required><br><br>
-                        <button type="submit">Create Account</button>
+                        <button type="submit" class="submit-button liquid-glass">Create Account</button>
                     </form>
                     <p id="registerError" style="color:red; display:none;"></p>
                     <p id="registerSuccess" style="color:green; display:none;">Account created! Please login.</p>
@@ -130,7 +130,7 @@
                     </div>
                 </section>
                 
-                <main id="maincalander">
+                <main id="maincalander"></main>
                     <div id="tododev" role="region" aria-labelledby="todoHeading">
                         <h3 id="todoHeading">Upcoming Tasks.</h3>
                         <div id="searchbar">

@@ -129,6 +129,58 @@ html, body {
   width: 100%;
 }
 
+.logbutton {
+  width: 50%;
+  height: 30px;
+  margin: 0;
+  padding: 0.5rem 1rem;
+  border: 0 0 0 0;
+  border-top: none;
+  border-right: none;
+  border-left: none;
+  border-bottom: var(--glass-border);
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, color 0.2s ease, border-bottom 0.2s ease;
+}
+.logbutton:hover {
+  background: rgba(255,255,255,0.1);
+}
+.logbutton.active {
+  border-bottom: 3px solid var(--accent);
+  font-weight: 800;
+}
+.log_button_div{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: clamp(1.5vh, 2vh, 2.5vh);
+  border-bottom: var(--glass-border);
+  transition: border-bottom 0.2s ease;
+}
+.submit-button{
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: #fff;
+  font-size: var(--fs-md);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+  backdrop-filter: var(--glass-blur);
+}
+
 body {
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
@@ -166,14 +218,13 @@ body {
 /* Liquid glass scene */
 .lg-scene {
   min-height: 100vh;
-  width: 100%;
+  width: 110%;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   position: relative;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: max(env(safe-area-inset-top), 3vh) 3vw;
 }
 
 .liquid-glass {
